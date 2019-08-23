@@ -1,27 +1,11 @@
 # Spring 缓存封装 
 #### 主要功能：
 1. 支持本地（一级缓存） 和 redis （二级缓存）
-2. 支持集群缓存清楚（实现wmb清除）
+2. 支持集群缓存清理（实现redis 订阅删除）
 3. 自定义各级缓存失效时间，和失效时间
-4. 基于Spring cache 封装
+4. 基于Spring cache 封装，可以使用spring 注解 @Cacheable
 5. 支持Spring 4（guava） 和Spring 5（caffeine） 二级缓存都使用redis
   
-```
- //Spring 4 maven
-<dependency>
-    <groupId>com.bj58.chr.common</groupId>
-    <artifactId>cache-guava</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</dependency>
-
- //Spring 5 maven
-<dependency>
-    <groupId>com.bj58.chr.common</groupId>
-    <artifactId>cache-guava</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</dependency>
-```
-
 #### 相关配置  
 
 
@@ -29,14 +13,16 @@
   //Spring 4 配置
  /**
   * @ClassName: CacheConfig
-  * @Description:缓存配置
+  * @Description:
   * @Author: panxia
-  * @Date: Create in 2019/8/14 7:42 PM
+  * @Date: Create in 2019/8/23 4:32 PM
   * @Version:1.0
   */
  @Configuration
  @EnableCaching
  public class CacheConfig {
+ 
+     private final static Logger LOGGER= LoggerFactory.getLogger(CacheConfig.class);
  
      @Resource
      RedisTemplate redisTemplate;
@@ -73,24 +59,68 @@
           * guavaConfigs 本地缓存对象  可以不配置 支持生成默认配置
           */
          GuavaRedisCacheConfig guavaRedisConfig=new GuavaRedisCacheConfig(6L,redisTemplate,guavaConfigs);
- 
+         /**
+          * 消息通知发送配置
+          */
+         RedisNotice redisNotice=new RedisNotice(redisTemplate,"topic-tes");
+         guavaRedisConfig.setNotice(redisNotice);
          return   new GuavaRedisCacheManager(guavaRedisConfig);
      }
- }
+ 
+ 
+     /**
+      * 消息缓存清理监听
+      * @param guavaRedisCacheManager
+      * @param redisTemplate
+      * @return
+      */
+     @Bean
+     public MessageClearListener messageClearListener(CacheManager guavaRedisCacheManager,RedisTemplate redisTemplate) {
+         return new MessageClearListener(redisTemplate, (CacheClearManager) guavaRedisCacheManager);
+     }
+ 
+     /**
+      * redis相关配置
+      * @param redisConnectionFactory
+      * @param messageClearListener
+      * @return
+      */
+     @Bean
+     public RedisMessageListenerContainer reedisMessageListenerContainer(RedisConnectionFactory redisConnectionFactory,
+                                                                           MessageClearListener messageClearListener) {
+         RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
+         redisMessageListenerContainer.setConnectionFactory(redisConnectionFactory);
+         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+         threadPoolTaskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors()*2);
+         threadPoolTaskExecutor.setThreadNamePrefix("taskExecutor-");
+         threadPoolTaskExecutor.setQueueCapacity(10000);
+         //线程空闲存活最大时间
+         threadPoolTaskExecutor.setKeepAliveSeconds(20);
+         threadPoolTaskExecutor.initialize();
+         redisMessageListenerContainer.setTaskExecutor(threadPoolTaskExecutor);
+ 
+         ChannelTopic channelTopic = new ChannelTopic("topic-tes");
+         redisMessageListenerContainer.addMessageListener(messageClearListener, channelTopic);
+         redisMessageListenerContainer.setErrorHandler((Throwable var) ->LOGGER.error(var.getMessage()));
+ 
+         return redisMessageListenerContainer;
+     }
 ```
 
 ```
   //Spring 5 配置
  /**
   * @ClassName: CacheConfig
-  * @Description:缓存配置
+  * @Description:
   * @Author: panxia
-  * @Date: Create in 2019/8/14 7:42 PM
+  * @Date: Create in 2019/8/23 4:32 PM
   * @Version:1.0
   */
  @Configuration
  @EnableCaching
  public class CacheConfig {
+ 
+     private final static Logger LOGGER= LoggerFactory.getLogger(CacheConfig.class);
  
      @Resource
      RedisTemplate redisTemplate;
@@ -127,25 +157,49 @@
           * caffeineConfigs 本地缓存对象  可以不配置 支持生成默认配置
           */
          CaffeineRedisCacheConfig caffeineRedisConfig=new CaffeineRedisCacheConfig(6L,redisTemplate,caffeineConfigs);
- 
+         RedisNotice redisNotice=new RedisNotice(redisTemplate,"topic-tes");
+         caffeineRedisConfig.setNotice(redisNotice);
          return   new CaffeineRedisCacheManager(caffeineRedisConfig);
      }
- }
-```
-
-```
-       缓存清除消息通知设置 可以不设置 系统默认创建 
-        /**
-         * 设置消息通知对象 也可以重写 AbstractNotice
-         * sendKeyPath 发送消息key
-         * receiveKeyPath 接受消息 key
-         * 10018 主题
-         * 1 clientId
-         */
-        AbstractNotice notice=new WMBNotice("sendKeyPath","receiveKeyPath",10018,1);
-        CaffeineRedisCacheManager caffeineRedisCacheManager= new CaffeineRedisCacheManager(caffeineRedisConfig);
-        caffeineRedisCacheManager.setNotice(notice);
-        return caffeineRedisCacheManager;
+ 
+ 
+     /**
+      * 缓存清理监听
+      * @param caffeineRedisCacheManager
+      * @param redisTemplate
+      * @return
+      */
+     @Bean
+     public MessageClearListener messageClearListener(CacheManager caffeineRedisCacheManager,RedisTemplate redisTemplate) {
+         return new MessageClearListener(redisTemplate, (CacheClearManager) caffeineRedisCacheManager);
+     }
+ 
+     /**
+      * redis相关配置
+      * @param redisConnectionFactory
+      * @param messageClearListener
+      * @return
+      */
+     @Bean
+     public RedisMessageListenerContainer reedisMessageListenerContainer(RedisConnectionFactory redisConnectionFactory,
+                                                                           MessageClearListener messageClearListener) {
+         RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
+         redisMessageListenerContainer.setConnectionFactory(redisConnectionFactory);
+         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+         threadPoolTaskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors()*2);
+         threadPoolTaskExecutor.setThreadNamePrefix("taskExecutor-");
+         threadPoolTaskExecutor.setQueueCapacity(10000);
+         //线程空闲存活最大时间
+         threadPoolTaskExecutor.setKeepAliveSeconds(20);
+         threadPoolTaskExecutor.initialize();
+         redisMessageListenerContainer.setTaskExecutor(threadPoolTaskExecutor);
+ 
+         ChannelTopic channelTopic = new ChannelTopic("topic-tes");
+         redisMessageListenerContainer.addMessageListener(messageClearListener, channelTopic);
+         redisMessageListenerContainer.setErrorHandler((Throwable var) ->LOGGER.error(var.getMessage()));
+ 
+         return redisMessageListenerContainer;
+     }
         
 ```
 #### 使用 
@@ -193,10 +247,9 @@
 
 
 #### 注意事项：
-1. wmb 需要scfkey 一个发送一个接受 jar 中有有，
-   可以直接copy到配置文件中
-2. 线上使用需要自己申请 wmb主题 key
-3. 重新消息组件 和 替换key方式 
+1. redis不配置 一级缓存也生效
+2. 消息通知 自己可以重写 
+
 
 
 

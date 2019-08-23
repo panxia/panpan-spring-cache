@@ -3,20 +3,23 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>common-spring-cache</artifactId>
-        <groupId>com.bj58.chr.common</groupId>
+        <artifactId>panpan-spring-cache</artifactId>
+        <groupId>com.panpan.common</groupId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>cache-guava</artifactId>
+
     <properties>
         <spring.version>4.2.8.RELEASE</spring.version>
+        <jackson.version>2.9.8</jackson.version>
+        <slf4j.version>1.7.8</slf4j.version>
     </properties>
     <dependencies>
 
         <dependency>
-            <groupId>com.bj58.chr.common</groupId>
+            <groupId>com.panpan.common</groupId>
             <artifactId>cache-base</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
@@ -51,32 +54,32 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
+            <version>${slf4j.version}</version>
         </dependency>
 
 
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <version>18.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.bj58.chr.common</groupId>
-            <artifactId>common-utils</artifactId>
-            <version>1.1.0</version>
-        </dependency>
 
         <!-- redis -->
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
+            <version>1.5.1.RELEASE</version>
         </dependency>
 
         <dependency>
@@ -88,23 +91,19 @@
 
 
         <dependency>
-            <groupId>com.bj58.spat</groupId>
-            <artifactId>com.bj58.spat.wmb.client</artifactId>
-            <version>1.0.4</version>
-        </dependency>
-
-
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
     </dependencies>
 </project>
