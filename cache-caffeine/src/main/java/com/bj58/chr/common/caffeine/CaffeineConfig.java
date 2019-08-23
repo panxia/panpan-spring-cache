@@ -23,7 +23,7 @@ public class CaffeineConfig {
     private long caffeineRefreshAfterWrite;
 
     /** 初始化大小*/
-    private int caffeineInitialCapacity=1;
+    private int caffeineInitialCapacity=1000;
 
     /** 最大缓存对象个数，超过此数量时之前放入的缓存将失效*/
     private long caffeineMaximumSize;
