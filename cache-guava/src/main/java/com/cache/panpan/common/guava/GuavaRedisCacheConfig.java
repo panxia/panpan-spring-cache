@@ -15,10 +15,7 @@ import java.util.List;
  */
 public class GuavaRedisCacheConfig {
 
-    /** redis过期时间，单位秒，默认不过期*/
-    private long redisDefaultExpiration = 0;
-    /** redis过期时间 */
-    private Long redisExpires;
+
     /**
      * redis缓存配置(二级缓存配置)
      */
@@ -40,8 +37,6 @@ public class GuavaRedisCacheConfig {
 
     /**
      *
-     * @param redisExpires
-     * redis过期时间，单位秒，默认不过期
      *
      * @param redisTemplate
      * redis缓存配置(二级缓存配置)
@@ -49,30 +44,10 @@ public class GuavaRedisCacheConfig {
      *
      * 本地缓存配置 一级缓存配置
      */
-    public GuavaRedisCacheConfig(Long redisExpires, RedisTemplate redisTemplate, List<GuavaConfig> localGuavaConfigs) {
-        this.redisExpires = redisExpires;
+    public GuavaRedisCacheConfig( RedisTemplate redisTemplate, List<GuavaConfig> localGuavaConfigs) {
         this.redisTemplate = redisTemplate;
         this.localGuavaConfigs = localGuavaConfigs;
     }
-
-    public long getRedisDefaultExpiration() {
-        return redisDefaultExpiration;
-    }
-
-    public void setRedisDefaultExpiration(long redisDefaultExpiration) {
-        this.redisDefaultExpiration = redisDefaultExpiration;
-    }
-
-    public Long getRedisExpires() {
-        return redisExpires;
-    }
-
-    public void setRedisExpires(Long redisExpires) {
-        this.redisExpires = redisExpires;
-    }
-
-
-
 
 
 

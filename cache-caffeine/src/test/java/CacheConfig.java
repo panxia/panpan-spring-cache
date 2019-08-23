@@ -57,6 +57,8 @@ public class CacheConfig {
         caffeineConfig.setCaffeineMaximumSize(1000);
         /** 初始化大小 默认1000*/
         caffeineConfig.setCaffeineInitialCapacity(1000);
+        /** 设置redis失效时间*/
+        caffeineConfig.setRedisExpires(6l);
         /**
          * caffeineConfigs 本地缓存对象  可以不配置 支持生成默认配置
          * 需要自定义本地缓存需要配置
@@ -69,7 +71,7 @@ public class CacheConfig {
          * redisTemplate 对象
          * caffeineConfigs 本地缓存对象  可以不配置 支持生成默认配置
          */
-        CaffeineRedisCacheConfig caffeineRedisConfig=new CaffeineRedisCacheConfig(6L,redisTemplate,caffeineConfigs);
+        CaffeineRedisCacheConfig caffeineRedisConfig=new CaffeineRedisCacheConfig(redisTemplate,caffeineConfigs);
         RedisNotice redisNotice=new RedisNotice(redisTemplate,"topic-tes");
         caffeineRedisConfig.setNotice(redisNotice);
         return   new CaffeineRedisCacheManager(caffeineRedisConfig);

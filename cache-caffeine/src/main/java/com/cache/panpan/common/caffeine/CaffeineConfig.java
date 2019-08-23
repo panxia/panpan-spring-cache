@@ -9,6 +9,12 @@ package com.cache.panpan.common.caffeine;
  */
 public class CaffeineConfig {
 
+
+    /** redis过期时间，单位秒，默认不过期*/
+    private long redisDefaultExpiration = 0;
+    /** redis过期时间 */
+    private Long redisExpires;
+
     private String cacheName;
 
 
@@ -79,5 +85,21 @@ public class CaffeineConfig {
 
     public void setCacheName(String cacheName) {
         this.cacheName = cacheName;
+    }
+
+    public long getRedisDefaultExpiration() {
+        return redisDefaultExpiration;
+    }
+
+    public void setRedisDefaultExpiration(long redisDefaultExpiration) {
+        this.redisDefaultExpiration = redisDefaultExpiration;
+    }
+
+    public Long getRedisExpires() {
+        return redisExpires;
+    }
+
+    public void setRedisExpires(Long redisExpires) {
+        this.redisExpires = redisExpires;
     }
 }

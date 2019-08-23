@@ -88,7 +88,7 @@ public class GuavaRedisCacheManager extends AbstractCacheManager implements Cach
         if(guavaRedisConfigOptional.isPresent()){
             guavaConfig =guavaRedisConfigOptional.get();
         }
-        long expiration = this.computeExpiration(guavaRedisConfig);
+        long expiration = this.computeExpiration(guavaConfig);
 
         //没有配置redis;
         if(this.template==null){
@@ -97,12 +97,12 @@ public class GuavaRedisCacheManager extends AbstractCacheManager implements Cach
         return new GuavaRedisCache(cacheName, this.cachePrefix.prefix(cacheName),this.template,this.guavaCache(guavaConfig),expiration,notice);
     }
 
-    protected long computeExpiration(GuavaRedisCacheConfig guavaRedisConfig) {
+    protected long computeExpiration(GuavaConfig guavaConfig) {
         Long expiration = null;
-            if (guavaRedisConfig.getRedisExpires() != null) {
-                expiration = guavaRedisConfig.getRedisExpires();
+            if (guavaConfig.getRedisExpires() != null) {
+                expiration = guavaConfig.getRedisExpires();
             }
-        return expiration != null ? expiration : guavaRedisConfig.getRedisDefaultExpiration();
+        return expiration != null ? expiration : guavaConfig.getRedisDefaultExpiration();
     }
 
 

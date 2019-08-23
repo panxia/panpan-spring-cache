@@ -88,7 +88,7 @@ public class CaffeineRedisCacheManager extends AbstractCacheManager implements C
         if(caffeineRedisConfigOptional.isPresent()){
             caffeineConfig =caffeineRedisConfigOptional.get();
         }
-        long expiration = this.computeExpiration(caffeineRedisConfig);
+        long expiration = this.computeExpiration(caffeineConfig);
 
         //没有配置redis;
         if(this.template==null){
@@ -97,12 +97,12 @@ public class CaffeineRedisCacheManager extends AbstractCacheManager implements C
         return new CaffeineRedisCache(cacheName, this.cachePrefix.prefix(cacheName),this.template,this.caffeineCache(caffeineConfig),expiration,notice);
     }
 
-    protected long computeExpiration(CaffeineRedisCacheConfig caffeineRedisConfig) {
+    protected long computeExpiration(CaffeineConfig caffeineConfig) {
         Long expiration = null;
-            if (caffeineRedisConfig.getRedisExpires() != null) {
-                expiration = caffeineRedisConfig.getRedisExpires();
+            if (caffeineConfig.getRedisExpires() != null) {
+                expiration = caffeineConfig.getRedisExpires();
             }
-        return expiration != null ? expiration : caffeineRedisConfig.getRedisDefaultExpiration();
+        return expiration != null ? expiration : caffeineConfig.getRedisDefaultExpiration();
     }
 
 
