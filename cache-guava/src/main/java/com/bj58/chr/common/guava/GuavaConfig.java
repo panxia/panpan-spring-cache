@@ -23,7 +23,7 @@ public class GuavaConfig {
     private long guavaRefreshAfterWrite;
 
     /** 初始化大小*/
-    private int guavaInitialCapacity=1;
+    private int guavaInitialCapacity=1000;
 
     /** 最大缓存对象个数，超过此数量时之前放入的缓存将失效*/
     private long guavaMaximumSize;
