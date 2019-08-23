@@ -4,7 +4,7 @@
 2. 支持集群缓存清楚（实现wmb清除）
 3. 自定义各级缓存失效时间，和失效时间
 4. 基于Spring cache 封装
-5. 支持Spring 4（guava） 和Spring 5（guava） 二级缓存都使用redis
+5. 支持Spring 4（guava） 和Spring 5（caffeine） 二级缓存都使用redis
   
 ```
  //Spring 4 maven
