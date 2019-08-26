@@ -19,64 +19,64 @@ public class GuavaConfig {
 
 
     /** 访问后过期时间，单位秒*/
-    private long guavaExpireAfterAccess=5;
+    private long expireAfterAccess=5;
 
 
     /** 写入后过期时间，单位秒*/
-    private long guavaExpireAfterWrite;
+    private long expireAfterWrite;
 
     /** 写入后刷新时间，单位秒*/
-    private long guavaRefreshAfterWrite;
+    private long refreshAfterWrite;
 
     /** 初始化大小*/
-    private int guavaInitialCapacity=1000;
+    private int initialCapacity=1000;
 
     /** 最大缓存对象个数，超过此数量时之前放入的缓存将失效*/
-    private long guavaMaximumSize;
+    private long maximumSize;
 
 
     public GuavaConfig(String cacheName) {
         this.cacheName = cacheName;
     }
 
-    public long getGuavaExpireAfterAccess() {
-        return guavaExpireAfterAccess;
+    public void setExpireAfterAccess(long expireAfterAccess) {
+        this.expireAfterAccess = expireAfterAccess;
     }
 
-    public void setGuavaExpireAfterAccess(long guavaExpireAfterAccess) {
-        this.guavaExpireAfterAccess = guavaExpireAfterAccess;
+    public void setExpireAfterWrite(long expireAfterWrite) {
+        this.expireAfterWrite = expireAfterWrite;
     }
 
-    public long getGuavaExpireAfterWrite() {
-        return guavaExpireAfterWrite;
+    public void setRefreshAfterWrite(long refreshAfterWrite) {
+        this.refreshAfterWrite = refreshAfterWrite;
     }
 
-    public void setGuavaExpireAfterWrite(long guavaExpireAfterWrite) {
-        this.guavaExpireAfterWrite = guavaExpireAfterWrite;
+    public void setInitialCapacity(int initialCapacity) {
+        this.initialCapacity = initialCapacity;
     }
 
-    public long getGuavaRefreshAfterWrite() {
-        return guavaRefreshAfterWrite;
+    public void setMaximumSize(long maximumSize) {
+        this.maximumSize = maximumSize;
     }
 
-    public void setGuavaRefreshAfterWrite(long guavaRefreshAfterWrite) {
-        this.guavaRefreshAfterWrite = guavaRefreshAfterWrite;
+    public long getExpireAfterAccess() {
+        return expireAfterAccess;
     }
 
-    public int getGuavaInitialCapacity() {
-        return guavaInitialCapacity;
+    public long getExpireAfterWrite() {
+        return expireAfterWrite;
     }
 
-    public void setGuavaInitialCapacity(int guavaInitialCapacity) {
-        this.guavaInitialCapacity = guavaInitialCapacity;
+    public long getRefreshAfterWrite() {
+        return refreshAfterWrite;
     }
 
-    public long getGuavaMaximumSize() {
-        return guavaMaximumSize;
+    public int getInitialCapacity() {
+        return initialCapacity;
     }
 
-    public void setGuavaMaximumSize(long guavaMaximumSize) {
-        this.guavaMaximumSize = guavaMaximumSize;
+    public long getMaximumSize() {
+        return maximumSize;
     }
 
     public String getCacheName() {

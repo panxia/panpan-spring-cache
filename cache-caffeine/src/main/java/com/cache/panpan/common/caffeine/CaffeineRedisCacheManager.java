@@ -11,6 +11,9 @@ import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.cache.support.AbstractCacheManager;
 import org.springframework.data.redis.cache.DefaultRedisCachePrefix;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -72,21 +75,26 @@ public class CaffeineRedisCacheManager extends AbstractCacheManager implements C
     public Cache getCache(String name) {
         Assert.notNull(this.caffeineRedisConfig, "caffeineRedisConfigs 配置为空");
         Assert.notNull(name, "cacheName 为空");
-        Cache cache = super.getCache(name);
-        return cache == null && this.dynamic ? this.createAndAddCache(name) : cache;
+        //判断cache 是不是配置超时信息
+        List<String> nameAndConfig=Arrays.asList(name.split("#"));
+
+        Cache cache = super.getCache(nameAndConfig.get(0));
+        return cache == null && this.dynamic ? this.createAndAddCache(nameAndConfig) : cache;
     }
 
-    protected Cache createAndAddCache(String cacheName) {
-        this.addCache(this.createCache(cacheName));
-        return super.getCache(cacheName);
+    protected Cache createAndAddCache(List<String> nameAndConfig) {
+        this.addCache(this.createCache(nameAndConfig));
+        return super.getCache(nameAndConfig.get(0));
     }
 
-    protected Cache createCache(String cacheName) {
+    protected Cache createCache(List<String> nameAndConfig) {
         Optional<CaffeineConfig> caffeineRedisConfigOptional= caffeineRedisConfig.getLocalCaffeineConfigs().stream().
-                filter(c -> cacheName.equals(c.getCacheName())).findFirst();
-        CaffeineConfig caffeineConfig=new CaffeineConfig(cacheName);
+                filter(c -> nameAndConfig.get(0).equals(c.getCacheName())).findFirst();
+        CaffeineConfig caffeineConfig=new CaffeineConfig( nameAndConfig.get(0));
         if(caffeineRedisConfigOptional.isPresent()){
             caffeineConfig =caffeineRedisConfigOptional.get();
+        }else if(nameAndConfig.size()>=2) {//Spring el 配置执行
+            parseExpression(nameAndConfig,caffeineConfig);
         }
         long expiration = this.computeExpiration(caffeineConfig);
 
@@ -94,7 +102,15 @@ public class CaffeineRedisCacheManager extends AbstractCacheManager implements C
         if(this.template==null){
             return this.caffeineCache(caffeineConfig);
         }
-        return new CaffeineRedisCache(cacheName, this.cachePrefix.prefix(cacheName),this.template,this.caffeineCache(caffeineConfig),expiration,notice);
+        return new CaffeineRedisCache( nameAndConfig.get(0), this.cachePrefix.prefix( nameAndConfig.get(0)),this.template,this.caffeineCache(caffeineConfig),expiration,notice);
+    }
+
+    private void parseExpression(List<String> nameAndConfig, CaffeineConfig caffeineConfig) {
+        StandardEvaluationContext context = new StandardEvaluationContext(caffeineConfig);
+        ExpressionParser parser = new SpelExpressionParser();
+        for (int i = 1; i <nameAndConfig.size() ; i++) {
+            parser.parseExpression(nameAndConfig.get(i)).getValue(context);
+        }
     }
 
     protected long computeExpiration(CaffeineConfig caffeineConfig) {
@@ -115,20 +131,20 @@ public class CaffeineRedisCacheManager extends AbstractCacheManager implements C
 
     public CaffeineCache caffeineCache(CaffeineConfig caffeineConfig){
         Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder();
-        if(caffeineConfig.getCaffeineExpireAfterAccess() > 0) {
-            cacheBuilder.expireAfterAccess(caffeineConfig.getCaffeineExpireAfterAccess(), TimeUnit.SECONDS);
+        if(caffeineConfig.getExpireAfterAccess() > 0) {
+            cacheBuilder.expireAfterAccess(caffeineConfig.getExpireAfterAccess(), TimeUnit.SECONDS);
         }
-        if(caffeineConfig.getCaffeineExpireAfterWrite() > 0) {
-            cacheBuilder.expireAfterWrite(caffeineConfig.getCaffeineExpireAfterWrite(), TimeUnit.SECONDS);
+        if(caffeineConfig.getExpireAfterWrite() > 0) {
+            cacheBuilder.expireAfterWrite(caffeineConfig.getExpireAfterWrite(), TimeUnit.SECONDS);
         }
-        if(caffeineConfig.getCaffeineInitialCapacity() > 0) {
-            cacheBuilder.initialCapacity(caffeineConfig.getCaffeineInitialCapacity());
+        if(caffeineConfig.getInitialCapacity() > 0) {
+            cacheBuilder.initialCapacity(caffeineConfig.getInitialCapacity());
         }
-        if(caffeineConfig.getCaffeineMaximumSize() > 0) {
-            cacheBuilder.maximumSize(caffeineConfig.getCaffeineMaximumSize());
+        if(caffeineConfig.getMaximumSize() > 0) {
+            cacheBuilder.maximumSize(caffeineConfig.getMaximumSize());
         }
-        if(caffeineConfig.getCaffeineRefreshAfterWrite() > 0) {
-            cacheBuilder.refreshAfterWrite(caffeineConfig.getCaffeineRefreshAfterWrite(), TimeUnit.SECONDS);
+        if(caffeineConfig.getRefreshAfterWrite() > 0) {
+            cacheBuilder.refreshAfterWrite(caffeineConfig.getRefreshAfterWrite(), TimeUnit.SECONDS);
         }
         return new CaffeineCache(caffeineConfig.getCacheName(),cacheBuilder.build());
     }

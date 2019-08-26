@@ -19,64 +19,64 @@ public class CaffeineConfig {
 
 
     /** 访问后过期时间，单位秒*/
-    private long caffeineExpireAfterAccess=5;
+    private long expireAfterAccess=5;
 
 
     /** 写入后过期时间，单位秒*/
-    private long caffeineExpireAfterWrite;
+    private long expireAfterWrite;
 
     /** 写入后刷新时间，单位秒*/
-    private long caffeineRefreshAfterWrite;
+    private long refreshAfterWrite;
 
     /** 初始化大小*/
-    private int caffeineInitialCapacity=1000;
+    private int initialCapacity=1000;
 
     /** 最大缓存对象个数，超过此数量时之前放入的缓存将失效*/
-    private long caffeineMaximumSize;
+    private long maximumSize;
 
 
     public CaffeineConfig(String cacheName) {
         this.cacheName = cacheName;
     }
 
-    public long getCaffeineExpireAfterAccess() {
-        return caffeineExpireAfterAccess;
+    public long getExpireAfterAccess() {
+        return expireAfterAccess;
     }
 
-    public void setCaffeineExpireAfterAccess(long caffeineExpireAfterAccess) {
-        this.caffeineExpireAfterAccess = caffeineExpireAfterAccess;
+    public void setExpireAfterAccess(long expireAfterAccess) {
+        this.expireAfterAccess = expireAfterAccess;
     }
 
-    public long getCaffeineExpireAfterWrite() {
-        return caffeineExpireAfterWrite;
+    public long getExpireAfterWrite() {
+        return expireAfterWrite;
     }
 
-    public void setCaffeineExpireAfterWrite(long caffeineExpireAfterWrite) {
-        this.caffeineExpireAfterWrite = caffeineExpireAfterWrite;
+    public void setExpireAfterWrite(long expireAfterWrite) {
+        this.expireAfterWrite = expireAfterWrite;
     }
 
-    public long getCaffeineRefreshAfterWrite() {
-        return caffeineRefreshAfterWrite;
+    public long getRefreshAfterWrite() {
+        return refreshAfterWrite;
     }
 
-    public void setCaffeineRefreshAfterWrite(long caffeineRefreshAfterWrite) {
-        this.caffeineRefreshAfterWrite = caffeineRefreshAfterWrite;
+    public void setRefreshAfterWrite(long refreshAfterWrite) {
+        this.refreshAfterWrite = refreshAfterWrite;
     }
 
-    public int getCaffeineInitialCapacity() {
-        return caffeineInitialCapacity;
+    public int getInitialCapacity() {
+        return initialCapacity;
     }
 
-    public void setCaffeineInitialCapacity(int caffeineInitialCapacity) {
-        this.caffeineInitialCapacity = caffeineInitialCapacity;
+    public void setInitialCapacity(int initialCapacity) {
+        this.initialCapacity = initialCapacity;
     }
 
-    public long getCaffeineMaximumSize() {
-        return caffeineMaximumSize;
+    public long getMaximumSize() {
+        return maximumSize;
     }
 
-    public void setCaffeineMaximumSize(long caffeineMaximumSize) {
-        this.caffeineMaximumSize = caffeineMaximumSize;
+    public void setMaximumSize(long maximumSize) {
+        this.maximumSize = maximumSize;
     }
 
     public String getCacheName() {

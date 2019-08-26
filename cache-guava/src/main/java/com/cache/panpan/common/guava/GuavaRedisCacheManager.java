@@ -10,6 +10,9 @@ import org.springframework.cache.guava.GuavaCache;
 import org.springframework.cache.support.AbstractCacheManager;
 import org.springframework.data.redis.cache.DefaultRedisCachePrefix;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -72,21 +75,25 @@ public class GuavaRedisCacheManager extends AbstractCacheManager implements Cach
     public Cache getCache(String name) {
         Assert.notNull(this.guavaRedisConfig, "guavaRedisConfig 配置为空");
         Assert.notNull(name, "cacheName 为空");
-        Cache cache = super.getCache(name);
-        return cache == null && this.dynamic ? this.createAndAddCache(name) : cache;
+        List<String> nameAndConfig=Arrays.asList(name.split("#"));
+        Cache cache = super.getCache(nameAndConfig.get(0))
+                ;
+        return cache == null && this.dynamic ? this.createAndAddCache(nameAndConfig) : cache;
     }
 
-    protected Cache createAndAddCache(String cacheName) {
-        this.addCache(this.createCache(cacheName));
-        return super.getCache(cacheName);
+    protected Cache createAndAddCache(List<String> nameAndConfig) {
+        this.addCache(this.createCache(nameAndConfig));
+        return super.getCache(nameAndConfig.get(0));
     }
 
-    protected Cache createCache(String cacheName) {
+    protected Cache createCache(List<String> nameAndConfig) {
         Optional<GuavaConfig> guavaRedisConfigOptional= guavaRedisConfig.getLocalGuavaConfigs().stream().
-                filter(c -> cacheName.equals(c.getCacheName())).findFirst();
-        GuavaConfig guavaConfig=new GuavaConfig(cacheName);
+                filter(c -> nameAndConfig.get(0).equals(c.getCacheName())).findFirst();
+        GuavaConfig guavaConfig=new GuavaConfig( nameAndConfig.get(0));
         if(guavaRedisConfigOptional.isPresent()){
             guavaConfig =guavaRedisConfigOptional.get();
+        }else{
+            parseExpression(nameAndConfig,guavaConfig);
         }
         long expiration = this.computeExpiration(guavaConfig);
 
@@ -94,7 +101,7 @@ public class GuavaRedisCacheManager extends AbstractCacheManager implements Cach
         if(this.template==null){
             return this.guavaCache(guavaConfig);
         }
-        return new GuavaRedisCache(cacheName, this.cachePrefix.prefix(cacheName),this.template,this.guavaCache(guavaConfig),expiration,notice);
+        return new GuavaRedisCache( nameAndConfig.get(0), this.cachePrefix.prefix( nameAndConfig.get(0)),this.template,this.guavaCache(guavaConfig),expiration,notice);
     }
 
     protected long computeExpiration(GuavaConfig guavaConfig) {
@@ -115,20 +122,20 @@ public class GuavaRedisCacheManager extends AbstractCacheManager implements Cach
 
     public GuavaCache guavaCache(GuavaConfig guavaConfig){
         CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder();
-        if(guavaConfig.getGuavaExpireAfterAccess() > 0) {
-            cacheBuilder.expireAfterAccess(guavaConfig.getGuavaExpireAfterAccess(), TimeUnit.SECONDS);
+        if(guavaConfig.getExpireAfterAccess() > 0) {
+            cacheBuilder.expireAfterAccess(guavaConfig.getExpireAfterAccess(), TimeUnit.SECONDS);
         }
-        if(guavaConfig.getGuavaExpireAfterWrite() > 0) {
-            cacheBuilder.expireAfterWrite(guavaConfig.getGuavaExpireAfterWrite(), TimeUnit.SECONDS);
+        if(guavaConfig.getExpireAfterWrite() > 0) {
+            cacheBuilder.expireAfterWrite(guavaConfig.getExpireAfterWrite(), TimeUnit.SECONDS);
         }
-        if(guavaConfig.getGuavaInitialCapacity() > 0) {
-            cacheBuilder.initialCapacity(guavaConfig.getGuavaInitialCapacity());
+        if(guavaConfig.getInitialCapacity() > 0) {
+            cacheBuilder.initialCapacity(guavaConfig.getInitialCapacity());
         }
-        if(guavaConfig.getGuavaMaximumSize() > 0) {
-            cacheBuilder.maximumSize(guavaConfig.getGuavaMaximumSize());
+        if(guavaConfig.getMaximumSize() > 0) {
+            cacheBuilder.maximumSize(guavaConfig.getMaximumSize());
         }
-        if(guavaConfig.getGuavaRefreshAfterWrite() > 0) {
-            cacheBuilder.refreshAfterWrite(guavaConfig.getGuavaRefreshAfterWrite(), TimeUnit.SECONDS);
+        if(guavaConfig.getRefreshAfterWrite() > 0) {
+            cacheBuilder.refreshAfterWrite(guavaConfig.getRefreshAfterWrite(), TimeUnit.SECONDS);
         }
         return new GuavaCache(guavaConfig.getCacheName(),cacheBuilder.build());
     }
@@ -157,7 +164,13 @@ public class GuavaRedisCacheManager extends AbstractCacheManager implements Cach
         this.template = template;
     }
 
-
+    private void parseExpression(List<String> nameAndConfig, GuavaConfig guavaConfig) {
+        StandardEvaluationContext context = new StandardEvaluationContext(guavaConfig);
+        ExpressionParser parser = new SpelExpressionParser();
+        for (int i = 1; i <nameAndConfig.size() ; i++) {
+            parser.parseExpression(nameAndConfig.get(i)).getValue(context);
+        }
+    }
 
 
 }

@@ -51,11 +51,11 @@ public class CacheConfig {
          */
         GuavaConfig guavaConfig=new GuavaConfig("我的缓存名称");
         /** 访问后过期时间，单位秒 默认5秒失效*/
-        guavaConfig.setGuavaExpireAfterAccess(5);
+        guavaConfig.setExpireAfterAccess(5);
         /** 最大缓存对象个数，超过此数量时之前放入的缓存将失效 默认为0*/
-        guavaConfig.setGuavaMaximumSize(1000);
+        guavaConfig.setMaximumSize(1000);
         /** 初始化大小 默认1000*/
-        guavaConfig.setGuavaInitialCapacity(1000);
+        guavaConfig.setInitialCapacity(1000);
 
         /** 设置redis失效时间*/
         guavaConfig.setRedisExpires(6l);

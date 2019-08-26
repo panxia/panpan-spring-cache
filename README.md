@@ -7,7 +7,122 @@
 5. 支持Spring 4（guava） 和Spring 5（caffeine） 二级缓存都使用redis
   
 #### 相关配置  
+```
+          /** redis过期时间 */
+          redisExpires;
+        
+         /** 访问后过期时间，单位秒*/
+         expireAfterAccess=5;
+        
+         /** 写入后过期时间，单位秒*/
+         expireAfterWrite;
+        
+        /** 写入后刷新时间，单位秒*/
+        refreshAfterWrite;
+         /** 初始化大小*/
+        initialCapacity=1000;
+        
+        /** 最大缓存对象个数，超过此数量时之前放入的缓存将失效*/
+        maximumSize;
 
+       注解支持
+       @Cacheable(value="users#expireAfterAccess=5#redisExpires=5#refreshAfterWrite", key="#id")
+       public User find(Integer id) {
+          return null;
+       }
+    
+       @Cacheable(value="users", key="#p0")
+       public User find(Integer id) {
+          return null;
+       }
+
+  
+ /**
+  * @ClassName: CacheConfig
+  * @Description:
+  * @Author: panxia
+  * @Date: Create in 2019/8/23 4:32 PM
+  * @Version:1.0
+  */
+ @Configuration
+ @EnableCaching
+ public class CacheConfig {
+ 
+     private final static Logger LOGGER= LoggerFactory.getLogger(CacheConfig.class);
+ 
+     @Resource
+     RedisTemplate redisTemplate;
+ 
+ 
+     /**
+      * 创建基于Guava的Cache Manager
+      * @return
+      */
+     @Bean
+     @Primary
+     public CacheManager guavaCacheManager() {
+ 
+        
+         /**
+          * guavaConfigs 本地缓存对象  可以不配置支持生成默认配置和注解配置
+          * 需要自定义本地缓存需要配置
+          */
+         List<GuavaConfig> guavaConfigs=new ArrayList<>();
+         guavaConfigs.add(guavaConfig);
+         /**
+          * 二级缓存配置 redis 缓存
+          * redisExpires 6L  redis 失效时间
+          * redisTemplate 对象
+          * guavaConfigs 本地缓存对象  可以不配置支持生成默认配置和注解配置
+          */
+         GuavaRedisCacheConfig guavaRedisConfig=new GuavaRedisCacheConfig(redisTemplate,guavaConfigs);
+         /**
+          * 消息通知发送配置
+          */
+         RedisNotice redisNotice=new RedisNotice(redisTemplate,"topic-tes");
+         guavaRedisConfig.setNotice(redisNotice);
+         return   new GuavaRedisCacheManager(guavaRedisConfig);
+     }
+ 
+ 
+     /**
+      * 消息缓存清理监听
+      * @param guavaRedisCacheManager
+      * @param redisTemplate
+      * @return
+      */
+     @Bean
+     public MessageClearListener messageClearListener(CacheManager guavaRedisCacheManager,RedisTemplate redisTemplate) {
+         return new MessageClearListener(redisTemplate, (CacheClearManager) guavaRedisCacheManager);
+     }
+ 
+     /**
+      * redis相关配置
+      * @param redisConnectionFactory
+      * @param messageClearListener
+      * @return
+      */
+     @Bean
+     public RedisMessageListenerContainer reedisMessageListenerContainer(RedisConnectionFactory redisConnectionFactory,
+                                                                           MessageClearListener messageClearListener) {
+         RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
+         redisMessageListenerContainer.setConnectionFactory(redisConnectionFactory);
+         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+         threadPoolTaskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors()*2);
+         threadPoolTaskExecutor.setThreadNamePrefix("taskExecutor-");
+         threadPoolTaskExecutor.setQueueCapacity(10000);
+         //线程空闲存活最大时间
+         threadPoolTaskExecutor.setKeepAliveSeconds(20);
+         threadPoolTaskExecutor.initialize();
+         redisMessageListenerContainer.setTaskExecutor(threadPoolTaskExecutor);
+ 
+         ChannelTopic channelTopic = new ChannelTopic("topic-tes");
+         redisMessageListenerContainer.addMessageListener(messageClearListener, channelTopic);
+         redisMessageListenerContainer.setErrorHandler((Throwable var) ->LOGGER.error(var.getMessage()));
+ 
+         return redisMessageListenerContainer;
+     }
+```
 
  ```
   //Spring 4 配置
@@ -49,7 +164,7 @@
        /** 设置redis失效时间*/
          guavaConfig.setRedisExpires(6l);
          /**
-          * guavaConfigs 本地缓存对象  可以不配置 支持生成默认配置
+          * guavaConfigs 本地缓存对象  可以不配置支持生成默认配置和注解配置
           * 需要自定义本地缓存需要配置
           */
          List<GuavaConfig> guavaConfigs=new ArrayList<>();
@@ -58,7 +173,7 @@
           * 二级缓存配置 redis 缓存
           * redisExpires 6L  redis 失效时间
           * redisTemplate 对象
-          * guavaConfigs 本地缓存对象  可以不配置 支持生成默认配置
+          * guavaConfigs 本地缓存对象  可以不配置支持生成默认配置和注解配置
           */
          GuavaRedisCacheConfig guavaRedisConfig=new GuavaRedisCacheConfig(redisTemplate,guavaConfigs);
          /**
@@ -149,7 +264,7 @@
          /** 设置redis失效时间*/
           caffeineConfig.setRedisExpires(6l);
          /**
-          * caffeineConfigs 本地缓存对象  可以不配置 支持生成默认配置
+          * caffeineConfigs 本地缓存对象  可以不配置支持生成默认配置和注解配置
           * 需要自定义本地缓存需要配置
           */
          List<CaffeineConfig> caffeineConfigs=new ArrayList<>();
@@ -158,7 +273,7 @@
           * 二级缓存配置 redis 缓存
           * redisExpires 6L  redis 失效时间
           * redisTemplate 对象
-          * caffeineConfigs 本地缓存对象  可以不配置 支持生成默认配置
+          * caffeineConfigs 本地缓存对象  可以不配置支持生成默认配置和注解配置
           */
          CaffeineRedisCacheConfig caffeineRedisConfig=new CaffeineRedisCacheConfig(redisTemplate,caffeineConfigs);
          RedisNotice redisNotice=new RedisNotice(redisTemplate,"topic-tes");
