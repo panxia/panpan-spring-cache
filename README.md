@@ -27,7 +27,7 @@
         maximumSize;
 
        注解支持
-       @Cacheable(value="users#expireAfterAccess=5#redisExpires=5#refreshAfterWrite", key="#id")
+       @Cacheable(value="users#expireAfterAccess=5#redisExpires=5#refreshAfterWrite=5", key="#id")
        public User find(Integer id) {
           return null;
        }
