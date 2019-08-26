@@ -8,6 +8,7 @@
   
 #### 相关配置  
 ```
+ 注解支持
           /** redis过期时间 */
           redisExpires;
         
@@ -122,7 +123,7 @@
  
          return redisMessageListenerContainer;
      }
-```
+ ```
 
  ```
   //Spring 4 配置
