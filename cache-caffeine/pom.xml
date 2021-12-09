@@ -12,7 +12,7 @@
     <artifactId>cache-caffeine</artifactId>
     <properties>
         <spring.version>5.1.3.RELEASE</spring.version>
-        <jackson.version>2.9.8</jackson.version>
+        <jackson.version>2.9.10.8</jackson.version>
         <slf4j.version>1.7.8</slf4j.version>
     </properties>
     <dependencies>
